@@ -54,15 +54,16 @@ def send_telegram(bucket, key, response):
     link = get_temp_link(bucket, key)
     token = os.getenv('TELEGRAM_API_TOKEN')
     chat_id = os.getenv('TELEGRAM_CHAT_ID')
-    text = "<a href={}> test image </a> ".format(urllib.quote_plus(link)) 
+    text = "[.]({})".format(urllib.quote_plus(link)) 
     if os.getenv('DEBUG'):
         text += str(response)
     url = "https://api.telegram.org/bot" + token + \
         "/sendMessage?chat_id=" + chat_id + \
+        "&parse_mode=markdown" + \
         "&text=" + text
 
     request = urllib2.Request(url)
-    response = urllib2.urlopen(request)
+    return urllib2.urlopen(request)
 
 
 # --------------- Main handler ------------------
@@ -91,14 +92,10 @@ def lambda_handler(event, context):
         print(response)
         
         if is_person(response):
-            send_telegram(bucket, key)
-        
-        if os.getenv('DEBUG'):
-            send_telegram(bucket, key, response)    
+            send_telegram(bucket, key, response)
         
     except Exception as e:
         print(e)
         print("Error processing object {} from bucket {}. ".format(key, bucket) +
               "Make sure your object and bucket exist and your bucket is in the same region as this function.")
         raise e
-
